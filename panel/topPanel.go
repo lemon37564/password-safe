@@ -85,13 +85,18 @@ func (t topPanel) newAddBtn(w fyne.Window) *widget.Button {
 }
 
 func (t topPanel) newDialog(w fyne.Window, items []*widget.FormItem, name *widget.Entry, account *widget.Entry, password *widget.Entry) dialog.Dialog {
-	d := dialog.NewForm("Add a pair of new account and password", "Confirm", "Cancel", items, func(boolean bool) {
+	var addDialog, errDialog dialog.Dialog
+
+	errDialog = dialog.NewError(errors.New("this name has existed"), w)
+	errDialog.SetOnClosed(func() { addDialog.Show() })
+
+	addDialog = dialog.NewForm("Add a pair of new account and password", "Confirm", "Cancel", items, func(boolean bool) {
 		if !boolean {
 			return
 		}
 
-		if _, boolean := t.data.Map[name.Text]; boolean {
-			dialog.ShowError(errors.New("this name has existed"), w)
+		if _, boolean := t.data.Get(name.Text); boolean {
+			errDialog.Show()
 			return
 		}
 		t.data.Assign(name.Text, storage.NewPair(account.Text, password.Text))
@@ -106,5 +111,5 @@ func (t topPanel) newDialog(w fyne.Window, items []*widget.FormItem, name *widge
 		t.rightPart.Add(b.deleteButton)
 	}, w)
 
-	return d
+	return addDialog
 }

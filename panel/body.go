@@ -28,8 +28,7 @@ func newBar(w fyne.Window, data *storage.Data, name, account, password string) b
 	b.accountEntry.Disable()
 	b.accountEntry.SetText(account)
 
-	b.passwordEntry = widget.NewEntry()
-	b.passwordEntry.Password = true
+	b.passwordEntry = widget.NewPasswordEntry()
 	b.passwordEntry.SetText(password)
 	b.passwordEntry.Disable()
 
@@ -38,18 +37,17 @@ func newBar(w fyne.Window, data *storage.Data, name, account, password string) b
 	})
 
 	b.editButton = widget.NewButtonWithIcon("", theme.SettingsIcon(), func() {
+		b.passwordEntry.Password = !b.passwordEntry.Password
 		if b.editButton.Icon == theme.SettingsIcon() {
-			b.passwordEntry.Password = false
 			b.accountEntry.Enable()
 			b.passwordEntry.Enable()
 			b.editButton.SetIcon(theme.ConfirmIcon())
 		} else {
-			b.passwordEntry.Password = true
 			b.accountEntry.Disable()
 			b.passwordEntry.Disable()
 			b.editButton.SetIcon(theme.SettingsIcon())
 
-			data.Assign(name, storage.NewPair(account, password))
+			data.Assign(name, storage.NewPair(b.accountEntry.Text, b.passwordEntry.Text))
 		}
 	})
 
@@ -77,7 +75,7 @@ func showBody(w fyne.Window, data *storage.Data) {
 	split := container.NewBorder(nil, nil, nil, rightPart, middlePart)
 	scroll := container.NewVScroll(split)
 
-	for i, v := range data.Map {
+	for i, v := range data.GetMap() {
 		b := newBar(w, data, i, v.Account, v.Password)
 
 		middlePart.Add(b.nameCard)

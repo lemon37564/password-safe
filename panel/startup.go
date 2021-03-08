@@ -1,6 +1,7 @@
 package panel
 
 import (
+	"errors"
 	"pass-safe/storage"
 
 	"fyne.io/fyne/v2"
@@ -9,6 +10,7 @@ import (
 	"fyne.io/fyne/v2/widget"
 )
 
+// Startup construct whole window
 func Startup(w fyne.Window) {
 
 	var key string
@@ -16,8 +18,8 @@ func Startup(w fyne.Window) {
 
 	if !storage.IsFileExist() {
 		show(w)
-	} else {
 
+	} else {
 		password := widget.NewPasswordEntry()
 		password.Validator = validation.NewRegexp(".+", "none")
 
@@ -40,31 +42,35 @@ func Startup(w fyne.Window) {
 			}
 
 			w.SetOnClosed(data.Store)
-
 			showBody(w, data)
 		}, w)
 	}
 }
 
 func show(w fyne.Window) {
+	notEmpty := validation.NewRegexp(".+", "none")
+
 	password := widget.NewPasswordEntry()
-	password.Validator = validation.NewRegexp(".+", "none")
+	password.Validator = notEmpty
 	confirm := widget.NewPasswordEntry()
-	confirm.Validator = validation.NewRegexp(".+", "none")
+	confirm.Validator = notEmpty
+
 	items := []*widget.FormItem{
 		widget.NewFormItem("Password", password),
 		widget.NewFormItem("Confirm", confirm),
 	}
 
-	var dial dialog.Dialog
+	var login, err dialog.Dialog
 
-	dial = dialog.NewForm("creating a new file, please enter your password:", "OK", "Cancel", items, func(b bool) {
+	err = dialog.NewError(errors.New("two passwords are not the same"), w)
+	err.SetOnClosed(func() { login.Show() })
+
+	login = dialog.NewForm("creating a new file, please enter your password:", "OK", "Cancel", items, func(b bool) {
 		if !b {
 			return
 		}
 
 		if password.Text != confirm.Text {
-			err := dialog.NewInformation("not same", "not same", w)
 			err.Show()
 			return
 		}
@@ -72,5 +78,5 @@ func show(w fyne.Window) {
 		storage.Create()
 	}, w)
 
-	dial.Show()
+	login.Show()
 }
