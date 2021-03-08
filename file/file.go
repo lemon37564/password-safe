@@ -4,9 +4,10 @@ import (
 	"encoding/json"
 	"log"
 	"os"
+	"pass-safe/crypto"
 )
 
-const docName = "safe"
+const docName = "pass.safe"
 
 // Create file to store encrypted data
 func Create() {
@@ -27,7 +28,10 @@ func Store(data map[string][]string, key []byte) {
 	}
 
 	// encrypt here
-	enc := j
+	enc, err := crypto.AesEncrypt(j, key)
+	if err != nil {
+		log.Println("aes encrypting:", err)
+	}
 
 	store(enc)
 }
@@ -48,14 +52,18 @@ func store(data []byte) {
 }
 
 // Read the encrypted data from file
-func Read() (m map[string][]string) {
+func Read(key []byte) (m map[string][]string) {
 
 	data := read()
 
 	// decrypt here
-	dec := data
+	dec, err := crypto.AesDecrypt(data, key)
+	if err != nil {
+		log.Println("aes decrypting:", err)
+		return
+	}
 
-	err := json.Unmarshal(dec, &m)
+	err = json.Unmarshal(dec, &m)
 	if err != nil {
 		log.Println("unmarshaling object:", err)
 		return

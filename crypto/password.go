@@ -6,10 +6,11 @@ import (
 )
 
 const (
-	lower   = "abcdefghijklmnopqrstuvwxyz"
-	upper   = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-	number  = "0123456789"
-	special = "+-*/?!@#$%&><(){}[]"
+	lower = "abcdefghijklmnopqrstuvwxyz"
+	upper = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+	// more numbers
+	number  = "01234567890123456789"
+	special = "+-*/_~?!@#$%&><(){}[]"
 	all     = lower + upper + number + special
 )
 

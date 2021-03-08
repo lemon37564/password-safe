@@ -6,12 +6,14 @@ import (
 	"crypto/cipher"
 )
 
-func AesEncrypt(origData []byte, key string) ([]byte, error) {
-	return aesEncrypt(origData, StrToSha256(key), genIvFromPass(key), pkcs5Padding)
+// AesEncrypt with 256 bits
+func AesEncrypt(origData []byte, key []byte) ([]byte, error) {
+	return aesEncrypt(origData, BytesToSha256(key), genIvFromPass(key), pkcs5Padding)
 }
 
-func AesDecrypt(crypted []byte, key string) ([]byte, error) {
-	return aesDecrypt(crypted, StrToSha256(key), genIvFromPass(key), pkcs5UnPadding)
+// AesDecrypt with 256 bits
+func AesDecrypt(crypted []byte, key []byte) ([]byte, error) {
+	return aesDecrypt(crypted, BytesToSha256(key), genIvFromPass(key), pkcs5UnPadding)
 }
 
 func aesEncrypt(origData []byte, key []byte, iv []byte, paddingFunc func([]byte, int) []byte) ([]byte, error) {
@@ -56,8 +58,8 @@ func pkcs5UnPadding(origData []byte) []byte {
 }
 
 // Generate IV from password (16 bytes)
-func genIvFromPass(pass string) (iv []byte) {
-	tmp := StrToSha256(pass)
+func genIvFromPass(pass []byte) (iv []byte) {
+	tmp := BytesToSha256(pass)
 
 	for i := 0; i < len(tmp); i++ {
 		if i%4 == 0 {
