@@ -7,8 +7,16 @@ import (
 	"pass-safe/crypto"
 )
 
-const docName = "pass.safe"
+/////////////////////////////////////////////////////////////
+//// document format: 0~15 bytes-> iv, 16~ bytes -> body ////
+/////////////////////////////////////////////////////////////
 
+const (
+	docName = "pass.safe"
+	ivLen   = 16 // bytes
+)
+
+// KeyError represents aes key error
 type KeyError struct {
 	s string
 }
@@ -33,7 +41,7 @@ func IsFileExist() bool {
 	return err == nil
 }
 
-func store(data map[string]Pair, key []byte) {
+func store(data map[string]Pair, key []byte, iv []byte) {
 	j, err := json.Marshal(data)
 	if err != nil {
 		log.Println("marshaling object:", err)
@@ -41,21 +49,27 @@ func store(data map[string]Pair, key []byte) {
 	}
 
 	// encrypt here
-	enc, err := crypto.AesEncrypt(j, key)
+	enc, err := crypto.AesEncrypt(j, key, iv)
 	if err != nil {
 		log.Println("aes encrypting:", err)
 	}
 
-	storeToFile(enc)
+	storeToFile(iv, enc)
 }
 
-func storeToFile(data []byte) {
+func storeToFile(iv []byte, data []byte) {
 	f, err := os.Create(docName)
 	if err != nil {
 		log.Println("opening document:", err)
 		return
 	}
 	defer f.Close()
+
+	_, err = f.Write(iv)
+	if err != nil {
+		log.Println("writing data:", err)
+		return
+	}
 
 	_, err = f.Write(data)
 	if err != nil {
@@ -68,12 +82,14 @@ func read(key []byte) (map[string]Pair, error) {
 	m := make(map[string]Pair)
 
 	data := readFromFile()
-	if len(data) == 0 {
+	if len(data) == 0 || len(data) <= ivLen {
 		return m, nil
 	}
 
+	iv := data[0:ivLen]
+	data = data[ivLen:]
 	// decrypt here
-	dec, err := crypto.AesDecrypt(data, key)
+	dec, err := crypto.AesDecrypt(data, key, iv)
 	if err != nil {
 		log.Println("aes decrypting:", err)
 		return m, nil
