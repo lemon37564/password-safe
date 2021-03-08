@@ -1,4 +1,4 @@
-package file
+package storage
 
 import (
 	"encoding/json"
@@ -19,8 +19,7 @@ func Create() {
 	defer f.Close()
 }
 
-// Store the encrypted data into file with json
-func Store(data map[string][]string, key []byte) {
+func store(data map[string]Pair, key []byte) {
 	j, err := json.Marshal(data)
 	if err != nil {
 		log.Println("marshaling object:", err)
@@ -33,10 +32,10 @@ func Store(data map[string][]string, key []byte) {
 		log.Println("aes encrypting:", err)
 	}
 
-	store(enc)
+	storeToFile(enc)
 }
 
-func store(data []byte) {
+func storeToFile(data []byte) {
 	f, err := os.Create(docName)
 	if err != nil {
 		log.Println("opening document:", err)
@@ -51,13 +50,13 @@ func store(data []byte) {
 	}
 }
 
-// Read the encrypted data from file
-func Read(key []byte) (m map[string][]string) {
+func read(key []byte) (m map[string]Pair) {
+	m = make(map[string]Pair)
 
-	data := read()
+	data := readFromFile()
 	if len(data) == 0 {
 		Create()
-		return make(map[string][]string)
+		return
 	}
 
 	// decrypt here
@@ -68,6 +67,7 @@ func Read(key []byte) (m map[string][]string) {
 	}
 
 	err = json.Unmarshal(dec, &m)
+	// if this error occurs then probably the key is wrong
 	if err != nil {
 		log.Println("unmarshaling object:", err)
 		return
@@ -76,7 +76,7 @@ func Read(key []byte) (m map[string][]string) {
 	return
 }
 
-func read() (data []byte) {
+func readFromFile() (data []byte) {
 	f, err := os.Open(docName)
 	if err != nil {
 		log.Println("opening document:", err)
