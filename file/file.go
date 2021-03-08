@@ -55,6 +55,10 @@ func store(data []byte) {
 func Read(key []byte) (m map[string][]string) {
 
 	data := read()
+	if len(data) == 0 {
+		Create()
+		return make(map[string][]string)
+	}
 
 	// decrypt here
 	dec, err := crypto.AesDecrypt(data, key)

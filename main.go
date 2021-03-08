@@ -1,7 +1,7 @@
 package main
 
 import (
-	"pass-safe/crypto"
+	"pass-safe/file"
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/app"
@@ -9,44 +9,67 @@ import (
 	"fyne.io/fyne/v2/widget"
 )
 
-func main() {
+var key = []byte{123, 4, 56, 98, 20, 14, 36, 44, 10, 255, 39, 223, 109, 182}
 
+func main() {
 	a := app.New()
 	w := a.NewWindow("Password Safe")
 
-	cont := container.NewGridWithColumns(3)
+	cont := container.NewGridWithColumns(2)
+	grid := container.NewGridWithColumns(2)
+	split := container.NewBorder(nil, nil, nil, grid, cont)
+	scroll := container.NewVScroll(split)
 
-	for i := 0; i < 5; i++ {
-		textcase := widget.NewEntry()
-		textcase.Password = true
-		textcase.SetText(crypto.GeneratePassword(16))
+	mapData := file.Read(key)
+
+	for i, v := range mapData {
+		account := widget.NewEntry()
+		account.Disable()
+		account.SetText(i)
+
+		password := widget.NewEntry()
+		password.Password = true
+		password.SetText(v[0])
+		password.Disable()
 
 		copyBtn := widget.NewButton("copy", func() {
-			w.Clipboard().SetContent(textcase.Text)
+			w.Clipboard().SetContent(password.Text)
 		})
 
 		var edit *widget.Button
 
 		edit = widget.NewButton("edit", func() {
 			if edit.Text == "edit" {
-				textcase.Password = false
-				textcase.Enable()
+				password.Password = false
+				account.Enable()
+				password.Enable()
 				edit.SetText("done")
+				delete(mapData, account.Text)
 			} else {
-				textcase.Password = true
-				textcase.Disable()
+				password.Password = true
+				account.Disable()
+				password.Disable()
 				edit.SetText("edit")
+
+				mapData[account.Text] = []string{password.Text}
+
+				file.Store(mapData, key)
 			}
 		})
 
-		cont.Add(textcase)
-		cont.Add(copyBtn)
-		cont.Add(edit)
+		cont.Add(account)
+		cont.Add(password)
+		grid.Add(copyBtn)
+		grid.Add(edit)
 	}
 
-	w.SetContent(cont)
+	top := newTopPanel(w, mapData)
 
-	w.Resize(fyne.NewSize(450.0, 120.0))
+	mainCont := container.NewBorder(top, nil, nil, nil, scroll)
+
+	w.SetContent(mainCont)
+
+	w.Resize(fyne.NewSize(800.0, 600.0))
 	w.CenterOnScreen()
 	w.ShowAndRun()
 }
