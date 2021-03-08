@@ -37,9 +37,11 @@ func (d *Data) Get(key string) Pair {
 // Assign the value into map
 func (d *Data) Assign(key string, pair Pair) {
 	d.Map[key] = pair
+	d.Store()
 }
 
 // Delete a value from map
 func (d *Data) Delete(key string) {
 	delete(d.Map, key)
+	d.Store()
 }

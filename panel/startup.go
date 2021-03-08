@@ -1,4 +1,4 @@
-package main
+package panel
 
 import (
 	"pass-safe/storage"
@@ -9,7 +9,7 @@ import (
 	"fyne.io/fyne/v2/widget"
 )
 
-func startup(w fyne.Window) {
+func Startup(w fyne.Window) {
 
 	var key string
 	var data *storage.Data
