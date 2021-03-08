@@ -9,6 +9,14 @@ import (
 
 const docName = "pass.safe"
 
+type KeyError struct {
+	s string
+}
+
+func (k KeyError) Error() string {
+	return k.s
+}
+
 // Create file to store encrypted data
 func Create() {
 	f, err := os.Create(docName)
@@ -17,6 +25,12 @@ func Create() {
 		return
 	}
 	defer f.Close()
+}
+
+// IsFileExist return boolean value that tells file exist or not
+func IsFileExist() bool {
+	_, err := os.Stat(docName)
+	return err == nil
 }
 
 func store(data map[string]Pair, key []byte) {
@@ -50,30 +64,29 @@ func storeToFile(data []byte) {
 	}
 }
 
-func read(key []byte) (m map[string]Pair) {
-	m = make(map[string]Pair)
+func read(key []byte) (map[string]Pair, error) {
+	m := make(map[string]Pair)
 
 	data := readFromFile()
 	if len(data) == 0 {
-		Create()
-		return
+		return m, nil
 	}
 
 	// decrypt here
 	dec, err := crypto.AesDecrypt(data, key)
 	if err != nil {
 		log.Println("aes decrypting:", err)
-		return
+		return m, nil
 	}
 
 	err = json.Unmarshal(dec, &m)
 	// if this error occurs then probably the key is wrong
 	if err != nil {
 		log.Println("unmarshaling object:", err)
-		return
+		return m, KeyError{s: "Wrong Password or damaged file"}
 	}
 
-	return
+	return m, nil
 }
 
 func readFromFile() (data []byte) {

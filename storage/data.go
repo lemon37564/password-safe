@@ -11,24 +11,33 @@ func NewData(key []byte) *Data {
 	return &Data{Map: make(map[string]Pair), key: key}
 }
 
+func (d *Data) Store() {
+	store(d.Map, d.key)
+}
+
 // Load from safe file
-func (p *Data) Load() {
-	p.Map = read(p.key)
+func (d *Data) Load() error {
+	var err error
+	d.Map, err = read(d.key)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 // Get the value from map
-func (p *Data) Get(key string) Pair {
-	return p.Map[key]
+func (d *Data) Get(key string) Pair {
+	return d.Map[key]
 }
 
 // Assign the value into map
-func (p *Data) Assign(key string, pair Pair) {
-	p.Map[key] = pair
-	store(p.Map, p.key)
+func (d *Data) Assign(key string, pair Pair) {
+	d.Map[key] = pair
+	// store(d.Map, d.key)
 }
 
 // Delete a value from map
-func (p *Data) Delete(key string) {
-	delete(p.Map, key)
-	store(p.Map, p.key)
+func (d *Data) Delete(key string) {
+	delete(d.Map, key)
+	// store(d.Map, d.key)
 }
