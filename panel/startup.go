@@ -13,9 +13,6 @@ import (
 // Startup construct whole window
 func Startup(w fyne.Window) {
 
-	var key string
-	var data *storage.Data
-
 	if !storage.IsFileExist() {
 		show(w)
 
@@ -32,17 +29,7 @@ func Startup(w fyne.Window) {
 				return
 			}
 
-			key = password.Text
-			data = storage.NewData([]byte(key))
-
-			err := data.Load()
-			if err != nil {
-				dialog.ShowError(err, w)
-				return
-			}
-
-			w.SetOnClosed(data.Store)
-			showBody(w, data)
+			next(w, password.Text)
 		}, w)
 	}
 }
@@ -76,7 +63,21 @@ func show(w fyne.Window) {
 		}
 
 		storage.Create()
+		next(w, password.Text)
 	}, w)
 
 	login.Show()
+}
+
+func next(w fyne.Window, key string) {
+	data := storage.NewData([]byte(key))
+
+	err := data.Load()
+	if err != nil {
+		dialog.ShowError(err, w)
+		return
+	}
+
+	w.SetOnClosed(data.Store)
+	showBody(w, data)
 }
